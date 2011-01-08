@@ -21,13 +21,25 @@ module tbench();
 
        for (my $i = 0; $i < scalar @signal_list; $i++) {
        
-          my $begin = 0;
-          my $end   = $signal_list[$i]{size} - 1;
-
-         print "   reg [$end:$begin] " . $signal_list[$i]{name} . ";\n";
-         print "   reg [$end:$begin] " . $signal_list[$i]{name} . "_read;\n";
-         print "   initial " . $signal_list[$i]{name} . " = " .$signal_list[$i]{size} . "'d0;\n";
-         print "   initial " . $signal_list[$i]{name} . "_read = " .$signal_list[$i]{size} . "'d0;\n";
+          my $name      = $signal_list[$i]{name};
+          my $size      = $signal_list[$i]{size};
+          my $addr_bits = $signal_list[$i]{addr_bits};
+          my $data_bits = $signal_list[$i]{data_bits};
+       
+          if ($signal_list[$i]{addr_bits} == 0) {
+             print "   reg [$size-1:0] ${name};\n";
+             print "   reg [$size-1:0] ${name}_read;\n";
+             print "   initial ${name}      = ${size}'d0;\n";
+             print "   initial ${name}_read = ${size}'d0;\n";
+          } else {
+             print "   reg [$addr_bits-1:0] ${name}_addr;\n";
+             print "   reg [$data_bits-1:0] ${name}_data;\n";
+             print "   reg [$data_bits-1:0] ${name}_data_read;\n";
+             print "   initial ${name}_addr      = ${addr_bits}'d0;\n";
+             print "   initial ${name}_data      = ${data_bits}'d0;\n";
+             print "   initial ${name}_data_read = ${data_bits}'d0;\n";
+          }
+       
        }
        
        */
@@ -67,10 +79,17 @@ module tbench();
              
              for (my $i = 0; $i < scalar @signal_list; $i++) {
              
-                my $begin = $signal_list[$i]{start};
-                my $end   = $signal_list[$i]{start} + $signal_list[$i]{size} - 1;
-             
-                print "         data_in[$end:$begin] = " . $signal_list[$i]{name} . ";\n";
+                if ($signal_list[$i]{addr_bits} == 0) {
+                   my $begin = $signal_list[$i]{start};
+                   my $end   = $signal_list[$i]{start} + $signal_list[$i]{size} - 1;
+                   
+                   print "         data_in[$end:$begin] = " . $signal_list[$i]{name} . ";\n";
+                } else {
+                   my $begin = $signal_list[$i]{start};
+                   my $end   = $signal_list[$i]{start} + $signal_list[$i]{addr_bits} + $signal_list[$i]{data_bits} - 1;
+
+                   print "         data_in[$end:$begin] = {" . $signal_list[$i]{name} . "_data, " . $signal_list[$i]{name} . "_addr};\n";
+                }
              }
              
              */
@@ -92,10 +111,17 @@ module tbench();
              
              for (my $i = 0; $i < scalar @signal_list; $i++) {
              
-                my $begin = $signal_list[$i]{start};
-                my $end   = $signal_list[$i]{start} + $signal_list[$i]{size} - 1;
-             
-                print "         " . $signal_list[$i]{name} . "_read = data_out[$end:$begin];\n";
+                if ($signal_list[$i]{addr_bits} == 0) {
+                   my $begin = $signal_list[$i]{start};
+                   my $end   = $signal_list[$i]{start} + $signal_list[$i]{size} - 1;
+                
+                   print "         " . $signal_list[$i]{name} . "_read = data_out[$end:$begin];\n";
+                } else {
+                   my $begin = $signal_list[$i]{start} + $signal_list[$i]{addr_bits};
+                   my $end   = $signal_list[$i]{start} + $signal_list[$i]{addr_bits} + $signal_list[$i]{data_bits} - 1;
+
+                   print "         " . $signal_list[$i]{name} . "_data_read = data_out[$end:$begin];\n";
+                }  
              }
              
              */
@@ -157,6 +183,8 @@ module tbench();
    
    initial begin
 
+      $dumpvars(0, tbench);
+            
       $display("Starting scan chain test");
       
       scan_phi  = 0;
@@ -164,24 +192,43 @@ module tbench();
       scan_data_in = 0;
       scan_load_chip = 0;
       scan_load_chain = 0;  
+
+      scan_reset = 1'b1;
       
       rotate_chain();      
       load_chip();
 
-	  // Write each variable
+      // Make sure reset worked
+      if (chip_internal_write_data_array !== 0)
+        $display("RESET TEST FAILED");
+      else
+        $display("RESET TEST PASSED");
+	  
+      // Write each variable
+      scan_reset = 1'b0;
+      
       write_data_1 = 1'd1;
       write_data_2 = 2'd2;
       write_data_3 = 3'd3;
+
+      write_data_array_addr = 2'd2;
+      write_data_array_data = 4'hA;
 
       rotate_chain();      
       load_chip();
       
       // Check that the chip sees the new variables
-      if (chip_internal_write_data_1 != 1'd1 ||
-          chip_internal_write_data_2 != 2'd2 ||
-          chip_internal_write_data_3 != 3'd3 )
-        $display("TEST 1 FAILED");
-      else
+      if (chip_internal_write_data_1     !== 1'd1 ||
+          chip_internal_write_data_2     !== 2'd2 ||
+          chip_internal_write_data_3     !== 3'd3 ||
+          chip_internal_write_data_array !== 15'h0A00) begin
+         $display("TEST 1 FAILED");
+         $display("%d %d %d %h", 
+                  chip_internal_write_data_1,
+                  chip_internal_write_data_2,
+                  chip_internal_write_data_3,
+                  chip_internal_write_data_array);
+      end else
         $display("TEST 1 PASSED");
          
       // Set internal values to read out      
@@ -189,28 +236,34 @@ module tbench();
       chip_internal_read_data_2 = 2'd3;
       chip_internal_read_data_3 = 3'd5;
 
+      chip_internal_read_data_array = 16'hABCD;
+
       // Read all of the values for both writable and non-writable variables
+      read_data_array_addr = 2'd1;
+      
+      rotate_chain();
       load_chain();
       rotate_chain();
 
       // Check to see that we read out all values properly
-      if (write_data_1_read != 1'd1 ||
-          write_data_2_read != 2'd2 ||
-          write_data_3_read != 3'd3 ||
-          read_data_1_read  != 1'd0 ||
-          read_data_2_read  != 2'd3 ||
-          read_data_3_read  != 3'd5 ) begin
+      if (write_data_1_read         !== 1'd1 ||
+          write_data_2_read         !== 2'd2 ||
+          write_data_3_read         !== 3'd3 ||
+          read_data_1_read          !== 1'd0 ||
+          read_data_2_read          !== 2'd3 ||
+          read_data_3_read          !== 3'd5 ||
+          read_data_array_data_read !== 4'hC) begin
          $display("TEST 2 FAILED");
-         $display("%d %d %d %d %d %d", 
+         $display("%d %d %d %d %d %d %h", 
                   write_data_1_read,
                   write_data_2_read,
                   write_data_3_read,
                   read_data_1_read,
                   read_data_2_read,
-                  read_data_3_read);
+                  read_data_3_read,
+                  read_data_array_data_read);
       end else
         $display("TEST 2 PASSED");
-        
 
       $finish;
    end

@@ -167,15 +167,16 @@ sub execute_block {
 
     open (BLOCK_CODE, ">" . $temp_file);
     print BLOCK_CODE $text;
+    
     # run perl on block
     $generated_text = `perl $temp_file`;
-    `rm $temp_file`;
 
-    # Check for errors in the eval statement
-    if ($@) {
-        print "Error in perl section:\n" . $text . "\n ERRORS: \n" . $@;
+    # Stop if there's an error
+    if ($? != 0) {
         die;
     }
+
+    `rm $temp_file`;
 
     return $generated_text;
 }

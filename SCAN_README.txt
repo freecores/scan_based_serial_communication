@@ -9,6 +9,7 @@ AUTHOR
 
 VERSION
         1.0 - June 27, 2010
+        1.1 - January 7, 2011
 
 SCAN DESCRIPTION
         This is a simple scan chain implemented with deperlify. It has been
@@ -47,7 +48,17 @@ SCAN DESCRIPTION
         the chip data has been loaded into the scan chain, clock out the
         data as normal.
 
-        Due to the buffering latch, complex internal interfaces can be
+        To create a large number of bits, address and data fields may
+        be created for a signal. 2^addr_bits*data_bits must be greater
+        than the size. In this way, only addr_bits+data_bits number of
+        bits may be generated in the scan chain, which reduces the
+        length of the scan chain, as well as the area, since latches
+        are much smaller than the muxing elements needed for the
+        chain. Since this is a new feature, the size specified by the
+        address and data bits should most likely match the total size
+        in order to avoid bugs.
+
+        Due to the buffering latches, complex internal interfaces can be
         emulated using the scan chain. For instance, an SRAM could be
         connected to a clock, chip select, write enable, 64-bit data-in, 
         and 64-bit data-out, all of which are connected to the scan
@@ -61,13 +72,7 @@ SCAN DESCRIPTION
 
         
 EXAMPLE DESCRIPTION
-        To run the example, use deperlify to generate scan.v and
-        scan_testbench.v:
-
-        perl deperlify.pl scan.perl.v
-        perl depeflify.pl scan_testbench.perl.v
-
-        Then use your Verilog simulator of choice.
+        To run the example, call "make". The example uses Synopsys VCS.
 
         This example takes advantage of the DEPERLIFY_INCLUDE command. The
         scan.perl.v file reads in the data structure scan_signal_list.pl
