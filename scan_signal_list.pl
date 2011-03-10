@@ -7,7 +7,19 @@ my $scan_reset_name = 'scan_reset';
 
 # Values are always readable (the buffering latch is what is read if writable)
 my @signal_list = ( # Inputs - outside to chip
+
                     { size =>   1, writable => 1, name => $scan_reset_name},
+
+
+                    { size =>   1, writable => 1, name => 'memory_load_mode'},
+
+
+                    { size =>   9, writable => 1, name => 'addr'},
+                    { size =>  64, writable => 1, name => 'input_data'},
+                    { size =>  64, writable => 0, name => 'output_data'},
+                    { size =>   1, writable => 1, name => 'w1_r0'},
+
+
 
                     { size =>   1, writable => 1, name => 'write_data_1'},
                     { size =>   2, writable => 1, name => 'write_data_2'},
