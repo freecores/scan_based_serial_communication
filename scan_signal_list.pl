@@ -13,7 +13,7 @@ my @signal_list = ( # Inputs - outside to chip
                     { size =>   2, writable => 1, name => 'write_data_2'},
                     { size =>   3, writable => 1, name => 'write_data_3'},
 
-                    { size =>  15, writable => 1, name => 'write_data_array', addr_bits => 2, data_bits => 4},
+                    { size =>  16, writable => 1, name => 'write_data_array', addr_bits => 2, data_bits => 4},
 
                     # Outputs - chip to outside
                     { size =>   1, writable => 0, name => 'read_data_1'},
