@@ -167,16 +167,20 @@ sub execute_block {
 
     open (BLOCK_CODE, ">" . $temp_file);
     print BLOCK_CODE $text;
-    
     # run perl on block
     $generated_text = `perl $temp_file`;
 
-    # Stop if there's an error
-    if ($? != 0) {
-        die;
+    # Check for errors in the eval statement
+    if ($generated_text ne "") {
+        `rm $temp_file`;
+    } else {
+        print "\n";
+        print "################################################################################################\n";
+        print "### Error in deperlify section. Check $temp_file for evaluated perl code ###\n";
+        print "################################################################################################\n";
+        print "\n";
+        exit;
     }
-
-    `rm $temp_file`;
 
     return $generated_text;
 }
