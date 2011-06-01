@@ -179,7 +179,7 @@ sub execute_block {
         print "### Error in deperlify section. Check $temp_file for evaluated perl code ###\n";
         print "################################################################################################\n";
         print "\n";
-        exit;
+        exit 1;
     }
 
     return $generated_text;
