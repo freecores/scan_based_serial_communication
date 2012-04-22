@@ -1,5 +1,5 @@
 
-`define SCAN_DELAY #1
+`define SCAN_DELAY #2
 
 module tbench();
    
