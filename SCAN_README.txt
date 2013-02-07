@@ -10,6 +10,7 @@ AUTHOR
 VERSION
         1.0 - June 27, 2010
         1.1 - January 7, 2011
+        1.2 - Feb 7, 2013
 
 SCAN DESCRIPTION
         This is a simple scan chain implemented with deperlify. It has been
@@ -57,6 +58,11 @@ SCAN DESCRIPTION
         chain. Since this is a new feature, the size specified by the
         address and data bits should most likely match the total size
         in order to avoid bugs.
+
+        An optional research field is included in the scan signal list.
+        When the scan reset bet is set to 1, all bits in the scan chain
+        are set to their optional reset value when specified, or zero
+        when it is not specified.
 
         Due to the buffering latches, complex internal interfaces can be
         emulated using the scan chain. For instance, an SRAM could be

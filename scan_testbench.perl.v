@@ -199,11 +199,17 @@ module tbench();
       load_chip();
 
       // Make sure reset worked
-      if (chip_internal_write_data_array !== 0)
-        $display("RESET TEST FAILED");
-      else
+      if (chip_internal_write_data_1 !== 1'd0 || 
+          chip_internal_write_data_2 !== 2'd3 ||
+          chip_internal_write_data_3 !== 3'd0 ||
+          chip_internal_write_data_array !== 16'hAA55
+          ) begin
+         $display("RESET TEST FAILED");
+         $finish;
+      end else begin
         $display("RESET TEST PASSED");
-	  
+      end
+         
       // Write each variable
       scan_reset = 1'b0;
       
@@ -212,7 +218,7 @@ module tbench();
       write_data_3 = 3'd3;
 
       write_data_array_addr = 2'd2;
-      write_data_array_data = 4'hA;
+      write_data_array_data = 4'hB;
 
       rotate_chain();      
       load_chip();
@@ -221,13 +227,14 @@ module tbench();
       if (chip_internal_write_data_1     !== 1'd1 ||
           chip_internal_write_data_2     !== 2'd2 ||
           chip_internal_write_data_3     !== 3'd3 ||
-          chip_internal_write_data_array !== 15'h0A00) begin
+          chip_internal_write_data_array !== 16'hAB55) begin
          $display("TEST 1 FAILED");
          $display("%d %d %d %h", 
                   chip_internal_write_data_1,
                   chip_internal_write_data_2,
                   chip_internal_write_data_3,
                   chip_internal_write_data_array);
+         $finish;
       end else
         $display("TEST 1 PASSED");
          
@@ -262,6 +269,7 @@ module tbench();
                   read_data_2_read,
                   read_data_3_read,
                   read_data_array_data_read);
+         $finish;
       end else
         $display("TEST 2 PASSED");
 

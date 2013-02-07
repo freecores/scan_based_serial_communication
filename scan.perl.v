@@ -130,8 +130,9 @@ module scan (
        
              my $name      = $signal_list[$i]{name};
              my $size      = $signal_list[$i]{size};
-             my $addr_bits = $signal_list[$i]{addr_bits};
-             my $data_bits = $signal_list[$i]{data_bits};
+             my $addr_bits = 0 + $signal_list[$i]{addr_bits};
+             my $data_bits = 0 + $signal_list[$i]{data_bits};
+             my $reset   = 0 + $signal_list[$i]{reset};
              
              my $size_begin = $signal_list[$i]{start};
              my $size_end   = $size_begin + $size - 1;
@@ -143,10 +144,10 @@ module scan (
              my $data_end   = $data_begin + $data_bits - 1;
        
              if ($signal_list[$i]{addr_bits} == 0) {
-                print "      $name = scan_slave[$size_end:$size_begin];\n";
+                print "      $name = scan_slave[$scan_reset_bit] ? ${size}'d${reset} : scan_slave[$size_end:$size_begin];\n";
              } else {
                 if ($scan_reset_exists) {
-                   print "      if (scan_slave[$scan_reset_bit]) ${name} = ${size}'d0; else\n";
+                   print "      if (scan_slave[$scan_reset_bit]) ${name} = ${size}'d${reset}; else\n";
                 }
                 print "      case (scan_slave[$addr_end:$addr_begin])\n";
                 for (my $a = 0; ($a+1-1)*$data_bits < $size; $a++) {
