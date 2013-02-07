@@ -6,33 +6,30 @@
 my $scan_reset_name = 'scan_reset';
 
 # Values are always readable (the buffering latch is what is read if writable)
-my @signal_list = ( # Inputs - outside to chip
+# Top of the list is first to come out of the scan chain
+my @signal_list = ( # Outputs - chip to outside
+                    { size =>   1, writable => 0, name => 'read_data_1'},
+                    { size =>   2, writable => 0, name => 'read_data_2'},
+                    { size =>   3, writable => 0, name => 'read_data_3'},
 
-                    { size =>   1, writable => 1, name => $scan_reset_name},
+                    { size =>  16, writable => 0, name => 'read_data_array',  addr_bits => 2, data_bits => 4},
 
-
+                    # Inputs - outside to chip
                     { size =>   1, writable => 1, name => 'memory_load_mode'},
-
 
                     { size =>   9, writable => 1, name => 'addr'},
                     { size =>  64, writable => 1, name => 'input_data'},
                     { size =>  64, writable => 0, name => 'output_data'},
                     { size =>   1, writable => 1, name => 'w1_r0'},
 
-
-
                     { size =>   1, writable => 1, name => 'write_data_1'},
                     { size =>   2, writable => 1, name => 'write_data_2', reset => 3},
                     { size =>   3, writable => 1, name => 'write_data_3'},
 
                     { size =>  16, writable => 1, name => 'write_data_array', addr_bits => 2, data_bits => 4, reset => 0xAA55},
-
-                    # Outputs - chip to outside
-                    { size =>   1, writable => 0, name => 'read_data_1'},
-                    { size =>   2, writable => 0, name => 'read_data_2'},
-                    { size =>   3, writable => 0, name => 'read_data_3'},
-
-                    { size =>  16, writable => 0, name => 'read_data_array',  addr_bits => 2, data_bits => 4},
+                    
+                    # Scan Reset - Make first bit in chain to allow a quick reset if needed
+                    { size =>   1, writable => 1, name => $scan_reset_name},
                     );
 
 
