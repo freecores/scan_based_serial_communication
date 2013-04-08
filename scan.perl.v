@@ -144,7 +144,11 @@ module scan (
              my $data_end   = $data_begin + $data_bits - 1;
        
              if ($signal_list[$i]{addr_bits} == 0) {
-                print "      $name = scan_slave[$scan_reset_bit] ? ${size}'d${reset} : scan_slave[$size_end:$size_begin];\n";
+                 if ($signal_list[$i]{name} ne $scan_reset_name) {
+                    print "      $name = scan_slave[$scan_reset_bit] ? ${size}'d${reset} : scan_slave[$size_end:$size_begin];\n";
+                 } else {
+                    print "      $name = scan_slave[$scan_reset_bit];\n";
+                 }
              } else {
                 if ($scan_reset_exists) {
                    print "      if (scan_slave[$scan_reset_bit]) ${name} = ${size}'d${reset}; else\n";
